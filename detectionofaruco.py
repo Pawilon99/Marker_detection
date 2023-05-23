@@ -35,7 +35,7 @@ while True:
         for i in range(len(ids)):
             cv2.drawFrameAxes(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 0.01)
             aruco.drawDetectedMarkers(frame, corners)
-            cv2.putText(frame, 'Dist: tvecs[i][0][0]
+            
             
             
         # Print marker IDs and poses
