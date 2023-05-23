@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 import numpy as np
 import cv2
 import os
@@ -12,13 +12,13 @@ if __name__ == '__main__':
     parser.add_argument('input',nargs="?", help='input video file or glob mask')
     parser.add_argument('out',nargs="?",help='output calibration yaml file')
     parser.add_argument('--debug_dir',nargs="?", help='path to directory where images with detected chessboard will be written',
-                        default='/home/pi/Desktop/calib_data')
-    parser.add_argument('--output_dir',nargs="?",help='path to directory where calibration files will be saved.',default='/home/pi/Desktop/calib_data')
+                        default='/home/asus/Desktop/MarkerDetection/Photo')
+    parser.add_argument('--output_dir',nargs="?",help='path to directory where calibration files will be saved.',default='/home/asus/Desktop/MarkerDetection')
     parser.add_argument('-c', '--corners',nargs="?", help='output corners file', default=None)
     parser.add_argument('-fs', '--framestep',nargs="?", help='use every nth frame in the video', default=10, type=int)
-    parser.add_argument('--height',nargs="?", help='Height in pixels of the image',default=480,type=int)
+    parser.add_argument('--height',nargs="?", help='Height in pixels of the image',default=720,type=int)
     parser.add_argument('--photo_height',nargs='?', help='Height of photo', default=50,type=int)
-    parser.add_argument('--width',nargs="?", help='Width in pixels of the image',default=640,type=int)
+    parser.add_argument('--width',nargs="?", help='Width in pixels of the image',default=960,type=int)
     parser.add_argument('--photo_width',nargs='?', help='Width of photo', default=50,type=int)
     parser.add_argument('--mm',nargs="?",help='Size in mm of each square.',default=25,type=int)
 # parser.add_argument('--figure', help='saved visualization name', default=None)
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     ph, wh = args.photo_height, args.photo_width
     i = -1
     image_count=0
-    image_goal=5
+    image_goal=10
     while True:
         i += 1
         if isinstance(source, list):
