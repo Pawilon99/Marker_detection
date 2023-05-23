@@ -1,85 +1,79 @@
-import numpy as np
 import cv2
-import os
-import argparse
-import yaml
-import pickle
-from glob import glob
 import cv2.aruco as aruco
-import time
-import zipfile
+import numpy as np
 
+# Set ArUco marker parameters
+aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+aruco_params = aruco.DetectorParameters_create()
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Calibrate camera using a video of a chessboard or a sequence of images.')
-    parser.add_argument("-t", "--type", type=str, default="DICT_ARUCO_ORIGINAL",help="type of ArUCo tag to detect")
-    parser.add_argument('out',nargs="?",help='output calibration yaml file')
-    parser.add_argument('--output_dir',nargs="?",help='path to directory where calibration files will be saved.',default='/home/pi/Desktop/ArUco')
-    args = parser.parse_args()
-
-    matrix = open('/home/pi/Desktop/calib_data/cameraMatrix.txt', 'r')
-    distortion = open('/home/pi/Desktop/calib_data/cameraDistortion.txt', 'r')
-    ARUCO_DICT = {
-        "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
-        "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
-        "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
-        "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
-        "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
-        "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
-        "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
-        "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
-        "DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11}
-    
-
-    arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[args["type"]])
-    arucoParams = cv2.aruco.DetectorParameters_create()
- 
+# Set camera parameters
+camera_matrix = np.genfromtxt('cameraMatrix.txt', dtype=float, encoding=None, delimiter=',')
+camera_distortion = np.genfromtxt('cameraDistortion.txt', dtype=float, encoding=None, delimiter=',')
 
 
 
-    cap = cv2.VideoCapture(1)
-    file1 = matrix.read()
-    file2 = distortion.read()
-    
-    camera_width = 640
-    camera_height = 480
-    camera_frame_rate = 20
+# Capture video from camera
+cap = cv2.VideoCapture(0)  # Use camera index 0, change to the appropriate index if using multiple cameras
 
-    cap.set(2, camera_width)
-    cap.set(4, camera_height)
-    cap.set(5, camera_frame_rate)
-    
-    
+while True:
+    # Capture frame from camera
     ret, frame = cap.read()
+    if not ret:
+        break
 
-    grey_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # Convert frame to grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    corners, ids, rejected = aruco.detectMarkers(grey_frame, arucoDict, file1, file2)
+    # Detect ArUco markers
+    corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
+    #(topLeft, topRight, bottomLeft, bottomRight) = corners
+    
+    
+    if ids is not None:
+        # Estimate marker poses
+        rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, camera_matrix, camera_distortion)
 
-    def aruco_display(corners, ids, rejected, images):
-        if len(corners) > 0:
-            # flatten the ArUco IDs list
-            ids = ids.flatten()
-        # loop over the detected ArUCo corners
-            for (markerCorner, markerID) in zip(corners, ids):
-                corners = markerCorner.reshape((4, 2))
-                (topLeft, topRight, bottomRight, bottomLeft) = corners
-                # convert each of the (x, y)-coordinate pairs to integers
-                topRight = (int(topRight[0]), int(topRight[1]))
-                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
-                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
-                topLeft = (int(topLeft[0]), int(topLeft[1]))
-                # draw the bounding box of the ArUCo detection
-                cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
-                cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
-                cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
-                cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
-                # compute and draw the center (x, y)-coordinates of the ArUco
-                # marker
-                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
-                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-                cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
-                # draw the ArUco marker ID on the image
-                cv2.putText(frame, str(markerID),
-                    (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (0, 255, 0), 2)
+        # Draw marker poses on frame
+        for i in range(len(ids)):
+            
+            distance = np.sqrt(tvecs[i][0][2]**2 + tvecs[i][0][0]**2 + tvecs[i][0][1]**2)
+            #corners = corners.resize(4,2)
+            #corners = np.astype(int)
+            #topRight = (int(topRight[0]),int(topRight[1]))
+            
+            cv2.drawFrameAxes(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 0.01)
+            aruco.drawDetectedMarkers(frame, corners)
+            cv2.putText(
+            frame, 
+            f"id: {ids} Dist: {round(distance*100,2)}",
+            (10,50),
+            cv2.FONT_HERSHEY_PLAIN,
+            1, 
+            (200,100,255), 
+            2, 
+            cv2.LINE_AA)
+             
+            cv2.putText(
+            frame, 
+            f"id: {ids} x: {round((tvecs[i][0][0])*100,1)} y: {round((tvecs[i][0][1])*100,1)}",
+            (10,100),
+            cv2.FONT_HERSHEY_PLAIN,
+            1, 
+            (200,100,255), 
+            2, 
+            cv2.LINE_AA)
+            
+            
+        # Print marker IDs and poses
+        print("Marker IDs: ", ids)
+        print("Translation vectors: ", tvecs)
+        print("Rotation vectors: ", rvecs)
+
+    # Display frame with marker poses
+    cv2.imshow('Distributed Object Positioning System', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Release camera and close windows
+cap.release()
+cv2.destroyAllWindows()
