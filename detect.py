@@ -32,9 +32,7 @@ if __name__ == '__main__':
 
         # Detect ArUco markers
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
-        #(topLeft, topRight, bottomLeft, bottomRight) = corners
-
-
+ 
         if ids is not None:
             # Estimate marker poses
             rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, camera_matrix, camera_distortion)
@@ -42,11 +40,7 @@ if __name__ == '__main__':
             # Draw marker poses on frame
             for i in range(len(ids)):
 
-                distance = np.sqrt(tvecs[i][0][2]**2 + tvecs[i][0][0]**2 + tvecs[i][0][1]**2)
-                #corners = corners.resize(4,2)
-                #corners = np.astype(int)
-                #topRight = (int(topRight[0]),int(topRight[1]))
-
+                distance = np.sqrt(tvecs[i][0][2]**2 + tvecs[i][0][0]**2 + tvecs[i][0][1]**2
                 cv2.drawFrameAxes(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 0.01)
                 aruco.drawDetectedMarkers(frame, corners)
                 cv2.putText(
