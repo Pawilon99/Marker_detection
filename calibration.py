@@ -57,8 +57,7 @@ if __name__ == '__main__':
                 break
             if i % args.framestep != 0:
                 continue
-        
-        #cv2.resizeWindow(img, 400,600)
+       
         cv2.imshow('Image',img)
 
         
@@ -84,7 +83,6 @@ if __name__ == '__main__':
             continue
         img_points.append(corners.reshape(1, -1, 2))
         obj_points.append(pattern_points.reshape(1, -1, 3))
-
         print ('ok')
 
     if args.corners:
@@ -93,17 +91,15 @@ if __name__ == '__main__':
             pickle.dump(obj_points, fw)
             pickle.dump((h, w), fw)
         
-
     print('\nPerforming calibration...')
     rms, camera_matrix, dist_coefs, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, (w, h), None, None)
     print ("RMS:", rms)
     print ("camera matrix:\n", camera_matrix)
     print ("distortion coefficients: ", dist_coefs.ravel())
 
-
     calibration = {'rms': rms, 'camera_matrix': camera_matrix.tolist(), 'dist_coefs': dist_coefs.tolist() }
 
-    ##OUTPUT DIRECTORIES
+    ## miejsce zapisu parametrów korekcyjnych kamery
     file1 = args.output_dir + "/cameraMatrix.txt"
     np.savetxt(file1,camera_matrix,delimiter=',')
     file2 = args.output_dir + "/cameraDistortion.txt"
