@@ -33,7 +33,7 @@ if __name__ == '__main__':
     pattern_size = (9, 6)
     pattern_points = np.zeros((np.prod(pattern_size), 3), np.float32)
     pattern_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
-    # pattern_points *= square_size
+    # deklaracja wzorca kalibracyjnego
 
     obj_points = []
     img_points = []
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     i = -1
     image_count=0
     image_goal=10
+    # deklaracja zmiennych, rozdzielczości, wysokości i szerokości obrazu, ilości obrazów wykorzystanych do procesu kalibracji
     while True:
         i += 1
         if isinstance(source, list):
