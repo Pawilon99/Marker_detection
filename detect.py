@@ -1,15 +1,27 @@
 import cv2
 import cv2.aruco as aruco
 import numpy as np
+import rospy
+import json
 
 # Dekalaracja parametrów ArUco
 aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
 aruco_params = aruco.DetectorParameters_create()
 
 # Deklaracja parametrów kamery
-camera_matrix = np.genfromtxt('cameraMatrix.txt', dtype=float, encoding=None, delimiter=',')
-camera_distortion = np.genfromtxt('cameraDistortion.txt', dtype=float, encoding=None, delimiter=',')
+#camera_matrix = np.genfromtxt('cameraMatrix.txt', dtype=float, encoding=None, delimiter=',')
+#camera_distortion = np.genfromtxt('cameraDistortion.txt', dtype=float, encoding=None, delimiter=',')
+j = open('parameters.js')
+data = json.load(j)
 
+with open('parameters.js') as parameters:
+    camera_params = json.load(parameters)
+
+camera_matrix = camera_params['camera_matrix']
+camera_distortion = camera_params['camera_distortion']
+
+
+    
 
 
 # Zainicjalizowanie działania kamery
@@ -17,7 +29,7 @@ cap = cv2.VideoCapture(0)
 
 if __name__ == '__main__':
     rospy.init_node('publisher', anonymous=True)
-    pub = rospy.Publisher('chatter', Float32, queue_Size=10)
+    pub = rospy.Publisher('chatter', np.float32, queue_size=10)
     rate = rospy.Rate(10)
     list_param = []
 
@@ -39,7 +51,7 @@ if __name__ == '__main__':
             # Wyrysowanie pozcyji markerów na obrazie
             for i in range(len(ids)):
 
-                distance = np.sqrt(tvecs[i][0][2]**2 + tvecs[i][0][0]**2 + tvecs[i][0][1]**2
+                distance = np.sqrt(tvecs[i][0][2]**2 + tvecs[i][0][0]**2 + tvecs[i][0][1]**2)
                 cv2.drawFrameAxes(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 0.01)
                 aruco.drawDetectedMarkers(frame, corners)
 #                 cv2.putText(
@@ -74,8 +86,8 @@ if __name__ == '__main__':
             
     # Display frame with marker poses
     # cv2.imshow('Distributed Object Positioning System', frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # if cv2.waitKey(1) & 0xFF == ord('q'):
+    #     break
 rospy.spin()
 # Release camera and close windows
 cap.release()
