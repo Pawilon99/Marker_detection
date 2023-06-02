@@ -6,7 +6,6 @@ import yaml
 import pickle
 from glob import glob
 import json
-import rospy
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calibrate camera using a video of a chessboard or a sequence of images.')
