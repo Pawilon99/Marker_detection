@@ -9,19 +9,14 @@ aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
 aruco_params = aruco.DetectorParameters_create()
 
 # Deklaracja parametrów kamery
-#camera_matrix = np.genfromtxt('cameraMatrix.txt', dtype=float, encoding=None, delimiter=',')
-#camera_distortion = np.genfromtxt('cameraDistortion.txt', dtype=float, encoding=None, delimiter=',')
-j = open('parameters.js')
-data = json.load(j)
 
-with open('parameters.js') as parameters:
+with open('/home/asus/parameters.json','r') as parameters:
     camera_params = json.load(parameters)
+    parameters.close()
 
 camera_matrix = camera_params['camera_matrix']
 camera_distortion = camera_params['camera_distortion']
 
-
-    
 
 
 # Zainicjalizowanie działania kamery
@@ -29,7 +24,7 @@ cap = cv2.VideoCapture(0)
 
 if __name__ == '__main__':
     rospy.init_node('publisher', anonymous=True)
-    pub = rospy.Publisher('chatter', np.float32, queue_size=10)
+    pub = rospy.Publisher('chatter', , queue_size=10)
     rate = rospy.Rate(10)
     list_param = []
 
