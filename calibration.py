@@ -1,4 +1,3 @@
-
 import numpy as np
 import cv2
 import os
@@ -6,6 +5,8 @@ import argparse
 import yaml
 import pickle
 from glob import glob
+import json
+import rospy
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Calibrate camera using a video of a chessboard or a sequence of images.')
@@ -25,8 +26,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-
-
+    # JSON data
+    j = {}
+    
     source = cv2.VideoCapture(0)
     # square_size = float(args.get('--square_size', 1.0))
     
@@ -41,7 +43,7 @@ if __name__ == '__main__':
     ph, wh = args.photo_height, args.photo_width
     i = -1
     image_count=0
-    image_goal=10
+    image_goal=20
     # deklaracja zmiennych, rozdzielczości, wysokości i szerokości obrazu, ilości obrazów wykorzystanych do procesu kalibracji
     while True:
         i += 1
@@ -58,7 +60,7 @@ if __name__ == '__main__':
             if i % args.framestep != 0:
                 continue
        
-        cv2.imshow('Image',img)
+        # cv2.imshow('Image',img)
 
         
         key = cv2.waitKey(2) & 0xFF
@@ -98,7 +100,15 @@ if __name__ == '__main__':
     print ("distortion coefficients: ", dist_coefs.ravel())
 
     calibration = {'rms': rms, 'camera_matrix': camera_matrix.tolist(), 'dist_coefs': dist_coefs.tolist() }
+    
+    j['camera_matrix'] = camera_matrix.tolist()
+    j['camera_distortion'] = dist_coefs.tolist()
+    j['rms'] = rms
 
+    if args.output_dir is not None:
+        json.dump(j,open('/home/asus/parameters.js','wt'))
+
+   
     ## miejsce zapisu parametrów korekcyjnych kamery
     file1 = args.output_dir + "/cameraMatrix.txt"
     np.savetxt(file1,camera_matrix,delimiter=',')
