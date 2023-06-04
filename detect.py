@@ -24,7 +24,7 @@ cap = cv2.VideoCapture(0)
 
 if __name__ == '__main__':
     rospy.init_node('publisher', anonymous=True)
-    pub = rospy.Publisher('chatter', , queue_size=10)
+    pub = rospy.Publisher('chatter', Float64 , queue_size=10)
     rate = rospy.Rate(10)
     list_param = []
 
