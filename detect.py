@@ -3,6 +3,7 @@ import cv2.aruco as aruco
 import numpy as np
 import rospy
 import json
+from std_msgs.msg import Float64
 
 # Dekalaracja parametrów ArUco
 aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
@@ -24,7 +25,7 @@ cap = cv2.VideoCapture(0)
 
 if __name__ == '__main__':
     rospy.init_node('publisher', anonymous=True)
-    pub = rospy.Publisher('chatter', Float64 , queue_size=10)
+    pub = rospy.Publisher('chatter', Float64, queue_size=10)
     rate = rospy.Rate(10)
     list_param = []
 
@@ -41,13 +42,13 @@ if __name__ == '__main__':
  
         if ids is not None:
             # Oszacowanie pozycji markerów
-            rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, camera_matrix, camera_distortion)
+            rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, np.float32(camera_matrix), np.float32(camera_distortion))
 
             # Wyrysowanie pozcyji markerów na obrazie
             for i in range(len(ids)):
 
                 distance = np.sqrt(tvecs[i][0][2]**2 + tvecs[i][0][0]**2 + tvecs[i][0][1]**2)
-                cv2.drawFrameAxes(frame, camera_matrix, camera_distortion, rvecs[i], tvecs[i], 0.01)
+                cv2.drawFrameAxes(frame, np.float32(camera_matrix), np.float32(camera_distortion), rvecs[i], tvecs[i], 0.01)
                 aruco.drawDetectedMarkers(frame, corners)
 #                 cv2.putText(
 #                 frame, 
@@ -74,7 +75,8 @@ if __name__ == '__main__':
             print("Marker IDs: ", ids)
             print("Translation vectors: ", tvecs)
             print("Rotation vectors: ", rvecs)
-            list_param = [ids, tvecs, rvecs, distance*100]
+            raspberry = 1
+            list_param = [raspberry, ids, tvecs, rvecs, distance*100]
             rospy.loginfo(list_param)
             pub.publish(list_param)
             
@@ -83,7 +85,7 @@ if __name__ == '__main__':
     # cv2.imshow('Distributed Object Positioning System', frame)
     # if cv2.waitKey(1) & 0xFF == ord('q'):
     #     break
-rospy.spin()
+    rospy.spin()
 # Release camera and close windows
 cap.release()
 cv2.destroyAllWindows()
