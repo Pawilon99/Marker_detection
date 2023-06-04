@@ -75,6 +75,7 @@ if __name__ == '__main__':
             print("Marker IDs: ", ids)
             print("Translation vectors: ", tvecs)
             print("Rotation vectors: ", rvecs)
+            print("Distance: ", distance*100)
             raspberry = 1
             list_param = [raspberry, ids, tvecs, rvecs, distance*100]
             rospy.loginfo(list_param)
