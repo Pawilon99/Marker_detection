@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 import cv2
 import cv2.aruco as aruco
 import numpy as np
 import rospy
 import json
-from std_msgs.msg import Float64
+from my_project.msg import vectors
 
 # Dekalaracja parametrów ArUco
 aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
@@ -11,7 +13,7 @@ aruco_params = aruco.DetectorParameters_create()
 
 # Deklaracja parametrów kamery
 
-with open('/home/asus/parameters.json','r') as parameters:
+with open('/home/asus/catkin_ws/src/my_project/scripts/parameters.json','r') as parameters:
     camera_params = json.load(parameters)
     parameters.close()
 
@@ -25,67 +27,52 @@ cap = cv2.VideoCapture(0)
 
 if __name__ == '__main__':
     rospy.init_node('publisher', anonymous=True)
-    pub = rospy.Publisher('chatter', Float64, queue_size=10)
-    rate = rospy.Rate(10)
+    pub = rospy.Publisher('chatter', vectors, queue_size=1)
+    rate = rospy.Rate(1)
     list_param = []
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
-
         # Przekształcenie obrazu w czarno-biały
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Wychwycenie znaczników
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
- 
+        
         if ids is not None:
-            # Oszacowanie pozycji markerów
-            rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, np.float32(camera_matrix), np.float32(camera_distortion))
 
-            # Wyrysowanie pozcyji markerów na obrazie
-            for i in range(len(ids)):
+            rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(corners, 0.04, np.float32(camera_matrix), np.float32(camera_distortion))
 
-                distance = np.sqrt(tvecs[i][0][2]**2 + tvecs[i][0][0]**2 + tvecs[i][0][1]**2)
-                cv2.drawFrameAxes(frame, np.float32(camera_matrix), np.float32(camera_distortion), rvecs[i], tvecs[i], 0.01)
-                aruco.drawDetectedMarkers(frame, corners)
-#                 cv2.putText(
-#                 frame, 
-#                 f"id: {ids} Dist: {round(distance*100,2)}",
-#                 (10,50),
-#                 cv2.FONT_HERSHEY_PLAIN,
-#                 1, 
-#                 (200,100,255), 
-#                 2, 
-#                 cv2.LINE_AA)
-
-#                 cv2.putText(
-#                 frame, 
-#                 f"id: {ids} x: {round((tvecs[i][0][0])*100,1)} y: {round((tvecs[i][0][1])*100,1)}",
-#                 (10,100),
-#                 cv2.FONT_HERSHEY_PLAIN,
-#                 1, 
-#                 (200,100,255), 
-#                 2, 
-#                 cv2.LINE_AA)
+        # Print marker IDs and poses
+        print("Marker IDs: ", ids)
+        print("Translation vectors: ", tvecs)
+        print("Rotation vectors: ", rvecs)
+        raspberry = 1.0
+        tvecs1 = tvecs
+        tvecs2 = tvecs1[0]
+        tvecs_msg = tvecs2[0]
+        rvecs1 = rvecs
+        rvecs2 = rvecs1[0]
+        rvecs_msg = rvecs2[0]
+        msg = vectors()
+        msg.x = tvecs_msg[0]
+        msg.y = tvecs_msg[1]
+        msg.z = tvecs_msg[2]
+        msg.i = rvecs_msg[0]
+        msg.j = rvecs_msg[1]
+        msg.k = rvecs_msg[2]
+        #msg.l = ids
+        msg.m = raspberry
 
 
-            # Print marker IDs and poses
-            print("Marker IDs: ", ids)
-            print("Translation vectors: ", tvecs)
-            print("Rotation vectors: ", rvecs)
-            print("Distance: ", distance*100)
-            raspberry = 1
-            list_param = [raspberry, ids, tvecs, rvecs, distance*100]
-            rospy.loginfo(list_param)
-            pub.publish(list_param)
+        rospy.loginfo(msg)
+        pub.publish(msg)
+                
+                
             
-            
-    # Display frame with marker poses
-    # cv2.imshow('Distributed Object Positioning System', frame)
-    # if cv2.waitKey(1) & 0xFF == ord('q'):
-    #     break
+    
     rospy.spin()
 # Release camera and close windows
 cap.release()
