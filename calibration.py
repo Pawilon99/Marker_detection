@@ -42,7 +42,7 @@ if __name__ == '__main__':
     ph, wh = args.photo_height, args.photo_width
     i = -1
     image_count=0
-    image_goal=20
+    image_goal=5
     # deklaracja zmiennych, rozdzielczości, wysokości i szerokości obrazu, ilości obrazów wykorzystanych do procesu kalibracji
     while True:
         i += 1
@@ -104,12 +104,7 @@ if __name__ == '__main__':
     j['camera_distortion'] = dist_coefs.tolist()
     j['rms'] = rms
 
-    if args.output_dir is not None:
-        json.dump(j,open('/home/asus/parameters.js','wt'))
 
-   
-    ## miejsce zapisu parametrów korekcyjnych kamery
-    file1 = args.output_dir + "/cameraMatrix.txt"
-    np.savetxt(file1,camera_matrix,delimiter=',')
-    file2 = args.output_dir + "/cameraDistortion.txt"
-    np.savetxt(file2,dist_coefs,delimiter=',')
+    with open('/home/asus/catkin_ws/src/my_project/scripts/parameters.json', 'w') as jsonFile:
+        json.dump(j,jsonFile)
+        jsonFile.close()
